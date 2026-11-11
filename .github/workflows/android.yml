@@ -69,4 +69,5 @@ jobs:
           if-no-files-found: error
       - name: Release signing secrets missing
         if: steps.signing.outputs.ready != 'true'
-        run: echo 'Release APK skipped: configure the four signing secrets in repository settings.'
+        run: |
+          echo "Release APK skipped: configure the four signing secrets in repository settings."
