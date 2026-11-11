@@ -4,7 +4,7 @@ Standalone HTML app plus Capacitor 7 Android wrapper. API 23 and API 29 variants
 
 ## Build locally
 
-1. Install Node.js 22, Java 17, Android SDK and platform tools.
+1. Install Node.js 22, Java 21, Android SDK and platform tools.
 2. `npm install`
 3. `npm run build`
 4. `npx cap add android && npx cap sync android`
