@@ -30,12 +30,22 @@ Passkeep uses the existing AppForge Cloud service; it does not need a Passkeep-s
 - Read: `GET`; write: `PUT` with `{expectedRevision, snapshot}`. Revision conflicts (HTTP 409) keep local data and require an explicit choice.
 - Only the locally encrypted vault envelope is uploaded. The PIN and plaintext entries are never sent. Automatic sync is available after the local and cloud copies are linked.
 - The app caps the request at 450 KB to stay below the AppForge API's 500 KB snapshot limit.
+- The Cloud Worker enforces the `APP_ORIGINS` allow-list. Add the exact HTTPS origin used to host Passkeep. A standalone file opened as `file://` remains local and cannot use Cloud sync.
 
 Google Drive remains a separate, optional encrypted backup.
 
-## Licence activation
+## AppForge licence activation
 
-Licence activation is separate from AppForge Cloud synchronization. The app still has fields for a licence service endpoint and code. Connect those controls only to the existing AppForge licence API after confirming its client routes; this branch does not deploy or require a second Worker/D1. Local vault access remains available offline.
+Passkeep uses the existing service at `https://appforge-license-api.appforge-licences-mg.workers.dev`. No Passkeep-specific Worker or D1 database is deployed or required.
+
+- AppForge product ID: `PASSKEEP`. It must be registered and active in the existing License API.
+- Activation: `POST /v1/activate` with `{productId, code, installationId}`.
+- Trial: `POST /v1/trial` with `{productId, installationId}`. The service applies its configured one-time trial period.
+- Online status/revocation check: `POST /v1/status` with `{productId, token, installationId}`.
+- The service returns an ECDSA P-256 signed proof. Passkeep verifies it locally with the currently pinned public key and checks it online when connected. The licence code is not saved; no admin token or signing secret is included in the client.
+- The local vault remains available offline. AppForge Cloud synchronization requires a valid signed licence or trial.
+
+If the AppForge signing key is rotated, update the public key pinned in Passkeep before issuing builds that must accept new proofs.
 
 ## Security
 
