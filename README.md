@@ -19,12 +19,26 @@ The standalone deliverable is `Passkeep-Standalone.html`. It embeds SheetJS, so 
 
 Signed Release needs GitHub secrets `KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, and `KEY_PASSWORD`. The signing key is not included. `versionName` remains 1.0.0; Actions increments `versionCode` per run.
 
-## Cloud licence and sync
+## AppForge Cloud synchronization
 
-Cloudflare Worker + D1 source and deployment steps are in `license-worker/README.md`. Cloud sync stores only the encrypted local snapshot, checks licence status, and uses version compare-and-swap. Conflicts do not overwrite data unless the user explicitly selects a restore or cloud replacement. No Cloudflare secret belongs in this repository or the client.
+Passkeep uses the existing AppForge Cloud service; it does not need a Passkeep-specific Worker or D1 database.
+
+- Default service: `https://appforge-cloud-api.appforge-licences-mg.workers.dev`
+- Authentication: `POST /v1/auth/login` with the AppForge account. The session token stays in memory and the password is cleared after login.
+- The user selects an organization. Passkeep uses the stable snapshot ID `passkeep-v1`.
+- Snapshot route: `/v1/organizations/{orgId}/apps/passkeep-v1/snapshot`
+- Read: `GET`; write: `PUT` with `{expectedRevision, snapshot}`. Revision conflicts (HTTP 409) keep local data and require an explicit choice.
+- Only the locally encrypted vault envelope is uploaded. The PIN and plaintext entries are never sent. Automatic sync is available after the local and cloud copies are linked.
+- The app caps the request at 450 KB to stay below the AppForge API's 500 KB snapshot limit.
+
+Google Drive remains a separate, optional encrypted backup.
+
+## Licence activation
+
+Licence activation is separate from AppForge Cloud synchronization. The app still has fields for a licence service endpoint and code. Connect those controls only to the existing AppForge licence API after confirming its client routes; this branch does not deploy or require a second Worker/D1. Local vault access remains available offline.
 
 ## Security
 
 - The standalone HTML uses a local PIN and encrypted vault; browser biometrics are unavailable there.
 - Android biometric authentication remains available through the native plugin.
-- Cloud sync requires an active license or the one-time 3-day trial; local vault use remains offline and does not depend on Cloudflare.
+- The cloud snapshot contains encrypted local vault data. AppForge Cloud account credentials and tokens are not written into the Passkeep settings.
