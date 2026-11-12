@@ -18,8 +18,13 @@ jobs:
         with: {distribution: temurin, java-version: '21'}
       - name: Install dependencies
         run: npm install --no-audit --no-fund
-      - name: Build web assets
+      - name: Build web assets and standalone HTML
         run: npm run build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Passkeep-HTML-Standalone
+          path: Passkeep-Standalone.html
+          if-no-files-found: error
       - name: Create Android project
         run: npx cap add android
       - name: Sync plugins

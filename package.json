@@ -11,7 +11,10 @@
     "@capacitor/android": "7.4.3",
     "@capacitor/core": "7.4.3",
     "@aparajita/capacitor-biometric-auth": "9.1.2",
-    "@aparajita/capacitor-secure-storage": "7.1.6"
+    "@aparajita/capacitor-secure-storage": "7.1.6",
+    "@capacitor/filesystem": "^7.1.4",
+    "@capacitor/share": "^7.0.2",
+    "xlsx": "0.18.5"
   },
   "devDependencies": {
     "@capacitor/cli": "7.4.3",

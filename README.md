@@ -1,37 +1,30 @@
 # Passkeep Android — v1.0.0
 
-Standalone HTML app plus Capacitor 7 Android wrapper. API 23 and API 29 variants are configured by GitHub Actions. Capacitor 7 is selected because Capacitor 8 requires API 24 and cannot produce the requested API 23 variant.
+HTML standalone plus Capacitor 7 Android wrapper. GitHub Actions packages the standalone HTML and builds Debug plus signed Release APKs for API 23 and API 29 when the four signing secrets are present.
 
-## Build locally
+## Local build
 
-1. Install Node.js 22, Java 21, Android SDK and platform tools.
-2. `npm install`
-3. `npm run build`
-4. `npx cap add android && npx cap sync android`
-5. `node scripts/configure-android.mjs`
-6. `cd android && ./gradlew assembleApi23Debug assembleApi29Debug`
+Requires Node.js 22, Java 21, Android SDK/platform tools.
 
-Release builds require the signing keystore, which is not included. Add GitHub Actions secrets `KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, and `KEY_PASSWORD`. Do not put the keystore or passwords in source control. Workflow artifacts contain Debug builds and, when all secrets exist, signed API23/API29 Release APKs. The version name remains 1.0.0; Release versionCode uses the GitHub run number.
+```sh
+npm install
+npm run build
+npx cap add android
+npx cap sync android
+node scripts/configure-android.mjs
+cd android && ./gradlew assembleApi23Debug assembleApi29Debug
+```
 
-## Security notes
+The standalone deliverable is `Passkeep-Standalone.html`. It embeds SheetJS, so Excel import, export and the template work offline. Android uses the native share sheet to save exports and encrypted backups to Downloads or another chosen app. Web downloads use the browser's download location.
 
-- The HTML standalone mode is local-only and uses a PIN; it cannot access native biometric authentication.
-- The Android wrapper exposes native biometric prompt and encrypted Android Keystore-backed storage. Biometrics gates the app UI, and secure storage encrypts data at rest; this does not recover a forgotten PIN.
-- Recovery key must be saved separately. Do not promise email recovery without a backend that can verify identity without storing vault plaintext.
-- The HTML Drive backup uses the user's OAuth client ID and `drive.appdata`; configure OAuth consent/origin in Google Cloud. The backup file is encrypted before upload.
-- Excel import/export can contain plaintext credentials. Export is confirmation-gated; treat such files as sensitive.
-- Set no API secrets in the HTML. Deploy the separate Cloudflare Worker/D1 license service and configure its URL in the app to activate trial/license checks.
+Signed Release needs GitHub secrets `KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, and `KEY_PASSWORD`. The signing key is not included. `versionName` remains 1.0.0; Actions increments `versionCode` per run.
 
-The separate license package includes draft terms to complete with the publisher’s legal identity, jurisdiction, pricing and refund terms before commercial distribution.
+## Cloud licence and sync
 
-## Import Excel
+Cloudflare Worker + D1 source and deployment steps are in `license-worker/README.md`. Cloud sync stores only the encrypted local snapshot, checks licence status, and uses version compare-and-swap. Conflicts do not overwrite data unless the user explicitly selects a restore or cloud replacement. No Cloudflare secret belongs in this repository or the client.
 
-Le modèle vierge se trouve dans `assets/Passkeep_Modele_Import.xlsx`. Les colonnes minimales à renseigner sont « Site / service » et « Mot de passe ». Les mots de passe du classeur sont en clair : ne pas le partager et le supprimer après import.
+## Security
 
-## Licence
-
-Le code du Cloudflare Worker et le schéma D1 sont dans `license-worker/`. Le service doit être déployé et configuré avant d’activer les essais ou licences dans l’application. Renseigner l’identifiant D1 et les secrets Cloudflare dans le tableau de bord Cloudflare; ne pas enregistrer de secrets dans ce dépôt.
-
-## Builds
-
-Le workflow `Android` compile deux variantes Debug et, si les secrets de signature sont disponibles dans GitHub Actions, deux APK Release signées: API 23 et API 29. Le HTML autonome reste disponible à la racine.
+- The standalone HTML uses a local PIN and encrypted vault; browser biometrics are unavailable there.
+- Android biometric authentication remains available through the native plugin.
+- Cloud sync requires an active license or the one-time 3-day trial; local vault use remains offline and does not depend on Cloudflare.
