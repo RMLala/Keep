@@ -1,7 +1,0 @@
-name = "passkeep-license"
-main = "src/index.js"
-compatibility_date = "2026-11-01"
-[[d1_databases]]
-binding = "DB"
-database_name = "passkeep-licenses"
-database_id = "REPLACE_WITH_D1_DATABASE_ID"
