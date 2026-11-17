@@ -1,0 +1,12 @@
+name: AppForge V3 central compliance
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  v3-evidence:
+    uses: RMLala/android-template/.github/workflows/appforge-v3-reusable.yml@main
