@@ -11,6 +11,7 @@ for (const route of ['/v1/activate', '/v1/trial', '/v1/status']) assert.ok(html.
 for (const id of ['view-about', 'reportPasskeepIssue', 'checkPasskeepUpdates', 'driveBackup', 'driveRestore', 'languageSelect']) assert.ok(html.includes(`id="${id}"`), `Missing V3 UI element: ${id}`);
 assert.match(html, /alt="Logo AppForge Studio"/, 'Support page must show AppForge Studio branding');
 assert.match(html, /function applyLanguage\(lang\)/, 'FR/MG language control must be functional');
+assert.match(html, /maybeAutoBiometricUnlock/, 'Android must prioritize biometrics before PIN entry');
 assert.match(html, /chooseBackup.*click\(\)/s, 'Drive restore must use the native file picker flow');
 assert.match(html, /await download\(backupBlob\(\),backupName\(\)\)/, 'Encrypted backup must use the local/share export flow');
 assert.doesNotMatch(html, /accounts\.google\.com\/gsi|googleapis\.com\/drive|googleapis\.com\/auth\/drive|GoogleSignIn/i, 'Drive backup must not use API OAuth');
