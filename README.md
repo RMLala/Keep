@@ -32,7 +32,7 @@ Passkeep uses the existing AppForge Cloud service; it does not need a Passkeep-s
 - The app caps the request at 450 KB to stay below the AppForge API's 500 KB snapshot limit.
 - The Cloud Worker enforces the `APP_ORIGINS` allow-list. Add the exact HTTPS origin used to host Passkeep. A standalone file opened as `file://` remains local and cannot use Cloud sync.
 
-Google Drive remains a separate, optional encrypted backup.
+Google Drive is a separate, optional encrypted backup. Passkeep does not request a Drive OAuth client or store a Google token: on Android, use the native share sheet to save the encrypted backup to Drive; restore by choosing the backup file from Drive in the Android file picker. The HTML standalone downloads the encrypted file through the browser.
 
 ## AppForge licence activation
 
@@ -52,3 +52,11 @@ If the AppForge signing key is rotated, update the public key pinned in Passkeep
 - The standalone HTML uses a local PIN and encrypted vault; browser biometrics are unavailable there.
 - Android biometric authentication remains available through the native plugin.
 - The cloud snapshot contains encrypted local vault data. AppForge Cloud account credentials and tokens are not written into the Passkeep settings.
+
+## AppForge V3 checks
+
+The repository keeps the V3 central workflow inherited from `main` and runs `npm test` on every pull request. The static tests parse the app script and guard the backup/share, licensing routes, and no-PWA/no-Drive-API requirements. These checks do not replace Android device tests, biometric tests, real Drive picker tests, or AppForge Cloud/D1 integration tests.
+
+## Support
+
+The app includes an À propos & Support page with current local status, a consent-gated diagnostic email that excludes vault content and credentials, and a GitHub release check. Publisher legal identity and official AppForge Studio logo asset must be confirmed before commercial publication.

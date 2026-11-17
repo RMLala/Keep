@@ -1,0 +1,17 @@
+import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
+import vm from 'node:vm';
+
+const html = await readFile(new URL('../Passkeep.html', import.meta.url), 'utf8');
+assert.match(html, /^<!doctype html>/i, 'Passkeep must remain a standalone HTML document');
+const scripts = [...html.matchAll(/<script\\b[^>]*>([\\s\\S]*?)<\\/script>/gi)].map(m => m[1]);
+assert.equal(scripts.length, 1, 'Expected one embedded application script');
+for (const [i, source] of scripts.entries()) new vm.Script(source, { filename: `Passkeep.inline-${i + 1}.js` });
+for (const route of ['/v1/activate', '/v1/trial', '/v1/status']) assert.ok(html.includes(route), `Missing AppForge License route: ${route}`);
+for (const id of ['view-about', 'reportPasskeepIssue', 'checkPasskeepUpdates', 'driveBackup', 'driveRestore']) assert.ok(html.includes(`id="${id}"`), `Missing V3 UI element: ${id}`);
+assert.match(html, /chooseBackup.*click\(\)/s, 'Drive restore must use the native file picker flow');
+assert.match(html, /await download\(backupBlob\(\),backupName\(\)\)/, 'Encrypted backup must use the local/share export flow');
+assert.doesNotMatch(html, /accounts\\.google\\.com\\/gsi|googleapis\\.com\\/drive|googleapis\\.com\\/auth\\/drive|GoogleSignIn/i, 'Drive backup must not use API OAuth');
+assert.doesNotMatch(html, /serviceWorker\\.register|navigator\\.serviceWorker\\.register/i, 'PWA/service worker registration is not allowed');
+assert.doesNotMatch(html, /AIza[A-Za-z0-9_-]{25,}|ghp_[A-Za-z0-9]{20,}/, 'Possible hard-coded secret detected');
+console.log('Passkeep AppForge V3 static checks passed.');
