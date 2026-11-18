@@ -21,6 +21,8 @@ const sdk = await readFile(new URL('../cloud/appforge-cloud-sync.js', import.met
 assert.match(html, /function deviceId\(\)/, 'License and Cloud requests must use a stable installation ID');
 for (const route of ['/v1/cloud/token', '/v1/cloud/snapshot']) assert.ok(sdk.includes(route), `Missing automatic Cloud route: ${route}`);
 assert.match(html, /AppForgeCloudSync\?\.create/, 'Passkeep must initialize the automatic Cloud SDK');
+assert.match(html, /id="cloudRightsStatus"/, 'Settings must show the actual Cloud entitlement status');
+assert.match(html, /expiresAt\?/, 'Cloud token validity must be reflected in the entitlement UI');
 assert.match(html, /cloudClient\.notifyLocalChange/, 'Local updates must queue for automatic sync');
 assert.match(html, /nativeSecureStorage\(\).*passkeep:/s, 'Android Cloud credentials must use secure storage');
 assert.doesNotMatch(html, /afCloudEmail|afCloudPassword|afCloudOrg|\/v1\/auth\/login|organizations\//, 'Cloud access must not require a user account or organization');
