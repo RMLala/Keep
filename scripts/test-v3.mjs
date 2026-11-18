@@ -17,4 +17,12 @@ assert.match(html, /await download\(backupBlob\(\),backupName\(\)\)/, 'Encrypted
 assert.doesNotMatch(html, /accounts\.google\.com\/gsi|googleapis\.com\/drive|googleapis\.com\/auth\/drive|GoogleSignIn/i, 'Drive backup must not use API OAuth');
 assert.doesNotMatch(html, /serviceWorker\.register|navigator\.serviceWorker\.register/i, 'PWA/service worker registration is not allowed');
 assert.doesNotMatch(html, /AIza[A-Za-z0-9_-]{25,}|ghp_[A-Za-z0-9]{20,}/, 'Possible hard-coded secret detected');
+const sdk = await readFile(new URL('../cloud/appforge-cloud-sync.js', import.meta.url), 'utf8');
+assert.match(html, /function deviceId\(\)/, 'License and Cloud requests must use a stable installation ID');
+for (const route of ['/v1/cloud/token', '/v1/cloud/snapshot']) assert.ok(sdk.includes(route), `Missing automatic Cloud route: ${route}`);
+assert.match(html, /AppForgeCloudSync\?\.create/, 'Passkeep must initialize the automatic Cloud SDK');
+assert.match(html, /cloudClient\.notifyLocalChange/, 'Local updates must queue for automatic sync');
+assert.match(html, /nativeSecureStorage\(\).*passkeep:/s, 'Android Cloud credentials must use secure storage');
+assert.doesNotMatch(html, /afCloudEmail|afCloudPassword|afCloudOrg|\/v1\/auth\/login|organizations\//, 'Cloud access must not require a user account or organization');
+assert.doesNotMatch(html, /cloudToken\s*\?/i, 'Cloud connected state must not be inferred from an in-memory placeholder');
 console.log('Passkeep AppForge V3 static checks passed.');
