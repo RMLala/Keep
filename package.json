@@ -6,7 +6,7 @@
     "prepare:web": "node scripts/prepare-web.mjs",
     "build": "npm run prepare:web && vite build",
     "android:sync": "npx cap sync android",
-    "test": "node scripts/test-v3.mjs"
+    "test": "node scripts/test-v3.mjs && node --test scripts/test-cloud-sdk.cjs"
   },
   "dependencies": {
     "@capacitor/android": "7.4.3",
