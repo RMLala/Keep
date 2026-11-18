@@ -19,20 +19,22 @@ The standalone deliverable is `Passkeep-Standalone.html`. It embeds SheetJS, so 
 
 Signed Release needs GitHub secrets `KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, and `KEY_PASSWORD`. The signing key is not included. `versionName` remains 1.0.0; Actions increments `versionCode` per run.
 
-## AppForge Cloud synchronization
+## AppForge Cloud synchronization — automatic, no customer account
 
-Passkeep uses the existing AppForge Cloud service; it does not need a Passkeep-specific Worker or D1 database.
+Passkeep uses the shared AppForge License Worker and its Cloudflare D1 snapshot routes. The customer does not create a Cloud account, enter an email/password, or select an organization. After an eligible licence or trial is activated, the app obtains a short-lived device-bound Cloud token and starts syncing automatically.
 
-- Default service: `https://appforge-cloud-api.appforge-licences-mg.workers.dev`
-- Authentication: `POST /v1/auth/login` with the AppForge account. The session token stays in memory and the password is cleared after login.
-- The user selects an organization. Passkeep uses the stable snapshot ID `passkeep-v1`.
-- Snapshot route: `/v1/organizations/{orgId}/apps/passkeep-v1/snapshot`
-- Read: `GET`; write: `PUT` with `{expectedRevision, snapshot}`. Revision conflicts (HTTP 409) keep local data and require an explicit choice.
-- Only the locally encrypted vault envelope is uploaded. The PIN and plaintext entries are never sent. Automatic sync is available after the local and cloud copies are linked.
-- The app caps the request at 450 KB to stay below the AppForge API's 500 KB snapshot limit.
-- The Cloud Worker enforces the `APP_ORIGINS` allow-list. Add the exact HTTPS origin used to host Passkeep. A standalone file opened as `file://` remains local and cannot use Cloud sync.
+- API base: `https://appforge-license-api.appforge-licences-mg.workers.dev`
+- Activation/trial: `POST /v1/activate` or `POST /v1/trial`; eligible responses include `cloudAccess`.
+- Token renewal: `POST /v1/cloud/token` with the product, installation ID and signed licence proof.
+- Snapshot: `GET/PUT /v1/cloud/snapshot?resource=default`; writes include `expectedRevision`, and concurrent writes return HTTP 409 without overwriting local data.
+- Every remote request must be rechecked by the Worker for licence, device, expiry, revocation, entitlement and quota. D1 isolates snapshots by product, licence and resource.
+- Android stores the SDK entitlement and Cloud token through the native secure-storage plugin. In HTML standalone, credentials remain in memory only; the signed offline licence proof remains local as before.
+- The vault snapshot is already AES-GCM encrypted locally; the PIN and plaintext vault entries are never sent to the Worker. Offline edits remain on this device and the SDK retries when network returns. If startup finds a different remote snapshot, Passkeep asks before replacing either copy.
+- The client is fail-closed for Cloud: a missing/invalid token or Worker error leaves the local vault available and never displays a connected/synced state.
 
-Google Drive is a separate, optional encrypted backup. Passkeep does not request a Drive OAuth client or store a Google token: on Android, use the native share sheet to save the encrypted backup to Drive; restore by choosing the backup file from Drive in the Android file picker. The HTML standalone downloads the encrypted file through the browser.
+The live Worker was checked on 2026-11-18: `/health` and `/v1/config` responded, but `GET /v1/cloud/snapshot?resource=passkeep-v1` returned `{"error":"Route inconnue."}`. So the Worker service is deployed, but the Cloud routes in source were not yet available at the production URL at verification time. AppForge must deploy the matching `cloud/license-worker` revision and confirm its D1 migration before Passkeep Cloud can be called operational.
+
+Google Drive remains a separate optional encrypted backup, not automatic sync. On Android, use the native share sheet to save encrypted backups to Drive and choose a Drive file in the Android picker to restore. The standalone HTML downloads the encrypted file through the browser.
 
 ## AppForge licence activation
 
