@@ -22,6 +22,7 @@ assert.match(html, /function deviceId\(\)/, 'License and Cloud requests must use
 for (const route of ['/v1/cloud/token', '/v1/cloud/snapshot']) assert.ok(sdk.includes(route), `Missing automatic Cloud route: ${route}`);
 assert.match(html, /AppForgeCloudSync\?\.create/, 'Passkeep must initialize the automatic Cloud SDK');
 assert.match(html, /id="cloudRightsStatus"/, 'Settings must show the actual Cloud entitlement status');
+assert.match(html, /dernier contrôle Worker/, 'Cloud rights must distinguish last server verification from a live connection');
 assert.match(html, /expiresAt\?/, 'Cloud token validity must be reflected in the entitlement UI');
 assert.match(html, /cloudClient\.notifyLocalChange/, 'Local updates must queue for automatic sync');
 assert.match(html, /nativeSecureStorage\(\).*passkeep:/s, 'Android Cloud credentials must use secure storage');
