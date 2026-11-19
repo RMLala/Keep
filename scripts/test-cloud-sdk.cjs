@@ -2,12 +2,13 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { create } = require('../cloud/appforge-cloud-sync.js');
 
-function fixture({ remote = null, onInitialRemote, onConflict } = {}) {
+function fixture({ remote = null, onInitialRemote, onConflict, isOnline = true } = {}) {
   const db = new Map();
   const calls = [];
   const local = { records: [{ id: 'a', value: 10 }] };
   let serverSnapshot = remote;
   let revision = remote ? 1 : 0;
+  let online = isOnline;
   const store = { get: async k => db.get(k) ?? null, set: async (k,v) => db.set(k,v), remove: async k => db.delete(k) };
   const fetch = async (url, init = {}) => {
     const path = new URL(url).pathname + new URL(url).search;
@@ -26,11 +27,11 @@ function fixture({ remote = null, onInitialRemote, onConflict } = {}) {
   const client = create({
     apiBase: 'https://licenses.example.workers.dev',
     productId: 'DEMO_APP',
-    store, fetch, isOnline: () => true,
+    store, fetch, isOnline: () => online,
     data: { getSnapshot: async () => local, applySnapshot: async data => Object.assign(local, data) },
     onInitialRemote, onConflict
   });
-  return { client, calls, db, local, get serverSnapshot(){return serverSnapshot}, get revision(){return revision} };
+  return { client, calls, db, local, setOnline(value){online=value}, get serverSnapshot(){return serverSnapshot}, get revision(){return revision} };
 }
 function response(data, status = 200) { return { ok: status >= 200 && status < 300, status, json: async () => data }; }
 
@@ -94,4 +95,31 @@ test('a write race offers the fresh server copy to the conflict handler', async 
   assert.equal(prompted, true);
   assert.equal(activated.sync.direction, 'download');
   assert.equal(f.local.records[0].id, 'newer-device');
+});
+
+test('offline activation keeps data local and sync resumes after reconnect', async () => {
+  const f = fixture({ isOnline: false });
+  const activated = await f.client.activate('APF-ABCDE-ABCDE-ABCDE-ABCDE');
+  assert.equal(activated.sync.state, 'offline');
+  assert.equal(f.calls.some(x => x.path.includes('/v1/cloud/snapshot')), false);
+  assert.equal(f.serverSnapshot, null);
+  f.setOnline(true);
+  const resumed = await f.client.start();
+  assert.equal(resumed.state, 'synced');
+  assert.deepEqual(f.serverSnapshot, f.local);
+});
+
+test('an expired Cloud token is renewed before the authenticated snapshot request', async () => {
+  const f = fixture();
+  await f.client.activate('APF-ABCDE-ABCDE-ABCDE-ABCDE');
+  const entitlementKey = 'appforge-cloud-entitlement-v1:DEMO_APP';
+  const record = JSON.parse(f.db.get(entitlementKey));
+  record.cloudExpiresAt = new Date(Date.now() - 1000).toISOString();
+  f.db.set(entitlementKey, JSON.stringify(record));
+  f.calls.length = 0;
+  const result = await f.client.sync();
+  assert.equal(result.state, 'synced');
+  assert.ok(f.calls.some(x => x.path === '/v1/cloud/token'));
+  const snapshot = f.calls.find(x => x.path.startsWith('/v1/cloud/snapshot'));
+  assert.equal(snapshot.headers.Authorization, 'Bearer renewed-cloud');
 });

@@ -56,7 +56,11 @@ The Passkeep app accepts the key returned over HTTPS by the central Worker and k
 - Android biometric authentication remains available through the native plugin.
 - The cloud snapshot contains encrypted local vault data. AppForge Cloud account credentials and tokens are not written into the Passkeep settings.
 
-## Langues et identité\n\nL’interface propose le français et le malagasy pour la navigation et les libellés principaux. Le panneau À propos & Support reprend l’icône officielle AppForge Studio et la signature Made in Madagascar.\n\n## AppForge V3 checks
+## Langues et identité
+
+L’interface propose le français et le malagasy pour la navigation et les libellés principaux. Le panneau À propos & Support reprend l’icône officielle AppForge Studio et la signature Made in Madagascar.
+
+## AppForge V3 checks
 
 The repository keeps the V3 central workflow inherited from `main` and runs `npm test` on every pull request. The static tests parse the app script and guard the backup/share, licensing routes, and no-PWA/no-Drive-API requirements. These checks do not replace Android device tests, biometric tests, real Drive picker tests, or AppForge Cloud/D1 integration tests.
 

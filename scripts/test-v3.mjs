@@ -30,6 +30,7 @@ assert.match(html, /id="cloudRightsStatus"/, 'Settings must show the actual Clou
 assert.match(html, /dernier contrôle Worker/, 'Cloud rights must distinguish last server verification from a live connection');
 assert.match(html, /expiresAt\?/, 'Cloud token validity must be reflected in the entitlement UI');
 assert.match(html, /cloudClient\.notifyLocalChange/, 'Local updates must queue for automatic sync');
+assert.match(html, /window\.addEventListener\('online',\(\)=>\{if\(key\)cloudResume\(\)/, 'Reconnect must resume synchronization after unlocking');
 assert.match(html, /nativeSecureStorage\(\).*passkeep:/s, 'Android Cloud credentials must use secure storage');
 assert.doesNotMatch(html, /afCloudEmail|afCloudPassword|afCloudOrg|\/v1\/auth\/login|organizations\//, 'Cloud access must not require a user account or organization');
 assert.doesNotMatch(html, /cloudToken\s*\?/i, 'Cloud connected state must not be inferred from an in-memory placeholder');
