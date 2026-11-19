@@ -43,7 +43,7 @@
     constructor(options = {}) {
       const productId = String(options.productId || '').trim().toUpperCase();
       if (!/^[A-Z0-9_-]{3,40}$/.test(productId)) throw new Error('Identifiant produit AppForge invalide.');
-      const apiBase = String(options.apiBase || '').trim().replace(/\/$/, '');
+      const apiBase = String(options.apiBase || 'https://appforge-license-api.lalainaadclick.workers.dev').trim().replace(/\/$/, '');
       if (!/^https:\/\//i.test(apiBase)) throw new Error('L’URL HTTPS du Worker AppForge Licence est requise.');
       this.productId = productId;
       this.apiBase = apiBase;

@@ -1,4 +1,4 @@
-# Passkeep Android — v1.0.0
+# Passkeep Android — v1.0.1
 
 HTML standalone plus Capacitor 7 Android wrapper. GitHub Actions packages the standalone HTML and builds Debug plus signed Release APKs for API 23 and API 29 when the four signing secrets are present.
 
@@ -17,13 +17,14 @@ cd android && ./gradlew assembleApi23Debug assembleApi29Debug
 
 The standalone deliverable is `Passkeep-Standalone.html`. It embeds SheetJS, so Excel import, export and the template work offline. Android uses the native share sheet to save exports and encrypted backups to Downloads or another chosen app. Web downloads use the browser's download location.
 
-Signed Release needs GitHub secrets `KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, and `KEY_PASSWORD`. The signing key is not included. `versionName` remains 1.0.0; Actions increments `versionCode` per run.
+Signed Release needs GitHub secrets `KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, and `KEY_PASSWORD`. The signing key is not included. `versionName` is 1.0.1; Actions increments `versionCode` per run.
 
 ## AppForge Cloud synchronization — automatic, no customer account
 
 Passkeep uses the shared AppForge License Worker and its Cloudflare D1 snapshot routes. The customer does not create a Cloud account, enter an email/password, or select an organization. After an eligible licence or trial is activated, the app obtains a short-lived device-bound Cloud token and starts syncing automatically.
 
-- API base: `https://appforge-license-api.appforge-licences-mg.workers.dev`
+- API base (fixed default): `https://appforge-license-api.lalainaadclick.workers.dev`
+- Configuration/key refresh: `GET /v1/config` using the `appforge-license-v1` protocol.
 - Activation/trial: `POST /v1/activate` or `POST /v1/trial`; eligible responses include `cloudAccess`.
 - Token renewal: `POST /v1/cloud/token` with the product, installation ID and signed licence proof.
 - Snapshot: `GET/PUT /v1/cloud/snapshot?resource=default`; writes include `expectedRevision`, and concurrent writes return HTTP 409 without overwriting local data.
@@ -32,22 +33,22 @@ Passkeep uses the shared AppForge License Worker and its Cloudflare D1 snapshot 
 - The vault snapshot is already AES-GCM encrypted locally; the PIN and plaintext vault entries are never sent to the Worker. Offline edits remain on this device and the SDK retries when network returns. If startup finds a different remote snapshot, Passkeep asks before replacing either copy.
 - The client is fail-closed for Cloud: a missing/invalid token or Worker error leaves the local vault available and never displays a connected/synced state.
 
-The live Worker was checked on 2026-11-18: `/health` and `/v1/config` responded, but `GET /v1/cloud/snapshot?resource=passkeep-v1` returned `{"error":"Route inconnue."}`. So the Worker service is deployed, but the Cloud routes in source were not yet available at the production URL at verification time. AppForge must deploy the matching `cloud/license-worker` revision and confirm its D1 migration before Passkeep Cloud can be called operational.
+The live Worker was checked on 2026-11-19: `/health` and `/v1/config` returned HTTP 200; `GET /v1/cloud/snapshot?resource=default` returned HTTP 401 with “Jeton Cloud invalide ou expiré.” This confirms that the new host has the snapshot route and rejects unauthenticated access. It does not prove a successful authenticated sync.
 
 Google Drive remains a separate optional encrypted backup, not automatic sync. On Android, use the native share sheet to save encrypted backups to Drive and choose a Drive file in the Android picker to restore. The standalone HTML downloads the encrypted file through the browser.
 
 ## AppForge licence activation
 
-Passkeep uses the existing service at `https://appforge-license-api.appforge-licences-mg.workers.dev`. No Passkeep-specific Worker or D1 database is deployed or required.
+Passkeep uses the shared service at `https://appforge-license-api.lalainaadclick.workers.dev`. The endpoint is fixed in the app; old `licenseEndpoint` preferences are overwritten on startup, and the endpoint is not requested from the customer.
 
-- AppForge product ID: `PASSKEEP`. It must be registered and active in the existing License API.
+- Product ID currently sent by this client: `PASSKEEP` (preserved from the prior implementation). Confirm its exact active spelling in production D1 before issuing or testing licences. The repository migration seed only proves `PROMPTI-V1`; it does not establish Passkeep’s production product row. No admin token is embedded in the app.
 - Activation: `POST /v1/activate` with `{productId, code, installationId}`.
 - Trial: `POST /v1/trial` with `{productId, installationId}`. The service applies its configured one-time trial period.
 - Online status/revocation check: `POST /v1/status` with `{productId, token, installationId}`.
-- The service returns an ECDSA P-256 signed proof. Passkeep verifies it locally with the currently pinned public key and checks it online when connected. The licence code is not saved; no admin token or signing secret is included in the client.
+- The service returns an ECDSA P-256 signed proof. Passkeep refreshes the public verification key from `/v1/config` online and retains legacy public keys for offline proof validation. The licence code is not saved; no admin token or signing secret is included in the client.
 - The local vault remains available offline. AppForge Cloud synchronization requires a valid signed licence or trial.
 
-If the AppForge signing key is rotated, update the public key pinned in Passkeep before issuing builds that must accept new proofs.
+The Passkeep app accepts the key returned over HTTPS by the central Worker and keeps the prior public verification key so an existing offline proof is not discarded during migration.
 
 ## Security
 

@@ -8,6 +8,10 @@ const scripts = [...html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)].map(
 assert.equal(scripts.length, 1, 'Expected one embedded application script');
 for (const [i, source] of scripts.entries()) new vm.Script(source, { filename: `Passkeep.inline-${i + 1}.js` });
 for (const route of ['/v1/activate', '/v1/trial', '/v1/status']) assert.ok(html.includes(route), `Missing AppForge License route: ${route}`);
+assert.ok(html.includes('https://appforge-license-api.lalainaadclick.workers.dev'), 'Passkeep must default to the central AppForge Worker');
+assert.ok(html.includes("fetch(LICENSE_API+'/v1/config'"), 'Passkeep must fetch the V3 protocol and public key from /v1/config');
+assert.ok(html.includes("resource:'default'"), 'Cloud snapshots must use the default V3 resource');
+assert.doesNotMatch(html, /appforge-license-api\.appforge-licences-mg\.workers\.dev|id="licenseEndpoint"|saveLicenseConfig/, 'Legacy Worker URL and editable endpoint must be removed');
 for (const id of ['view-about', 'reportPasskeepIssue', 'checkPasskeepUpdates', 'driveBackup', 'driveRestore', 'languageSelect']) assert.ok(html.includes(`id="${id}"`), `Missing V3 UI element: ${id}`);
 assert.match(html, /alt="Logo AppForge Studio"/, 'Support page must show AppForge Studio branding');
 assert.match(html, /function applyLanguage\(lang\)/, 'FR/MG language control must be functional');
@@ -18,6 +22,7 @@ assert.doesNotMatch(html, /accounts\.google\.com\/gsi|googleapis\.com\/drive|goo
 assert.doesNotMatch(html, /serviceWorker\.register|navigator\.serviceWorker\.register/i, 'PWA/service worker registration is not allowed');
 assert.doesNotMatch(html, /AIza[A-Za-z0-9_-]{25,}|ghp_[A-Za-z0-9]{20,}/, 'Possible hard-coded secret detected');
 const sdk = await readFile(new URL('../cloud/appforge-cloud-sync.js', import.meta.url), 'utf8');
+assert.ok(sdk.includes('https://appforge-license-api.lalainaadclick.workers.dev'), 'The shared Cloud SDK must default to the central Worker');
 assert.match(html, /function deviceId\(\)/, 'License and Cloud requests must use a stable installation ID');
 for (const route of ['/v1/cloud/token', '/v1/cloud/snapshot']) assert.ok(sdk.includes(route), `Missing automatic Cloud route: ${route}`);
 assert.match(html, /AppForgeCloudSync\?\.create/, 'Passkeep must initialize the automatic Cloud SDK');
