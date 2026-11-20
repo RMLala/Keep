@@ -25,5 +25,5 @@ if(!s.includes('signingConfigs')) {
     }`);
 }
 if(!s.includes('signingConfig signingConfigs.release')) s=s.replace(/buildTypes\s*\{\s*release\s*\{/, `buildTypes {\n        release {\n            signingConfig signingConfigs.release`);
-s=s.replace(/versionCode\s+\d+/, 'versionCode project.findProperty("versionCode")?.toInteger() ?: 1').replace(/versionName\s+"[^"]+"/, 'versionName "1.0.1"');
+s=s.replace(/versionCode\s+\d+/, 'versionCode project.findProperty("versionCode")?.toInteger() ?: 1').replace(/versionName\s+"[^"]+"/, 'versionName "1.0.2"');
 await writeFile(path,s);
