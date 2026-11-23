@@ -1,4 +1,4 @@
-# Passkeep Android — v1.0.1
+# Passkeep Android — v1.0.2
 
 HTML standalone plus Capacitor 7 Android wrapper. GitHub Actions packages the standalone HTML and builds Debug plus signed Release APKs for API 23 and API 29 when the four signing secrets are present.
 
@@ -17,7 +17,7 @@ cd android && ./gradlew assembleApi23Debug assembleApi29Debug
 
 The standalone deliverable is `Passkeep-Standalone.html`. It embeds SheetJS, so Excel import, export and the template work offline. Android uses the native share sheet to save exports and encrypted backups to Downloads or another chosen app. Web downloads use the browser's download location.
 
-Signed Release needs GitHub secrets `KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, and `KEY_PASSWORD`. The signing key is not included. `versionName` is 1.0.1; Actions increments `versionCode` per run.
+Signed Release needs GitHub secrets `KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, and `KEY_PASSWORD`. The signing key is not included. `versionName` is 1.0.2; Actions increments `versionCode` per run.
 
 ## AppForge Cloud synchronization — automatic, no customer account
 

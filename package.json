@@ -1,6 +1,6 @@
 {
   "name": "passkeep",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "private": true,
   "scripts": {
     "prepare:web": "node scripts/prepare-web.mjs",
