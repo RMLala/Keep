@@ -8,7 +8,13 @@ const scripts = [...html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)].map(
 assert.equal(scripts.length, 1, 'Expected one embedded application script');
 for (const [i, source] of scripts.entries()) new vm.Script(source, { filename: `Passkeep.inline-${i + 1}.js` });
 assert.ok(html.includes("function validPin(p){return /^[0-9]{4}$/.test(String(p||''))}"), 'New Passkeep PINs must be exactly four digits');
-assert.match(html, /function validUnlockPin\(p\)/, 'Existing PINs must remain usable until changed');\nassert.ok(html.includes('/^[0-9]{5,32}$/'), 'Previously supported legacy PIN lengths must remain usable');\nassert.ok(html.includes('Aperçu de l’import'), 'Import preview must be present');\nassert.ok(html.includes('Aperçu de restauration'), 'Restore preview must be present');\nassert.ok(html.includes('Fusionner uniquement'), 'Restore must offer merge');\nassert.ok(html.includes('safeCell=v=>'), 'Excel export must mitigate formula injection');\nassert.ok(html.includes('Version 1.1.0'), 'Version must be bumped');
+assert.match(html, /function validUnlockPin\(p\)/, 'Existing PINs must remain usable until changed');
+assert.ok(html.includes('/^[0-9]{5,32}$/'), 'Previously supported legacy PIN lengths must remain usable');
+assert.ok(html.includes('Aperçu de l’import'), 'Import preview must be present');
+assert.ok(html.includes('Aperçu de restauration'), 'Restore preview must be present');
+assert.ok(html.includes('Fusionner uniquement'), 'Restore must offer merge');
+assert.ok(html.includes('safeCell=v=>'), 'Excel export must mitigate formula injection');
+assert.ok(html.includes('Version 1.1.0'), 'Version must be bumped');
 assert.match(html, /settings\.pinLength===4\?4:32/, 'Existing longer PIN entry must remain compatible');
 assert.match(html, /function deduplicateImportRecords\(existing,incoming\)/, 'Import must deduplicate records before adding them');
 const importHelpers = html.match(/function importFingerprint\(entry\)\{[\s\S]*?\n}\nfunction deduplicateImportRecords\(existing,incoming\)\{[\s\S]*?\n}/);
