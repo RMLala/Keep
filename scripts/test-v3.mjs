@@ -9,6 +9,12 @@ assert.match(androidConfig, /ACTION_CREATE_DOCUMENT/, 'Android backup must use n
 assert.match(androidConfig, /android\.util\.Base64\.decode/, 'Native SAF bridge must decode backup bytes on API23+');
 assert.match(androidConfig, /registerPlugin\(PasskeepBackupSavePlugin\.class\)/, 'Android SAF plugin must be registered');
 assert.match(nativeEntry, /NativeBackupSave\.saveFile/, 'Native bridge must invoke SAF save plugin');
+assert.match(nativeEntry, /NativeBackupSave\.copyText\(\{ text: String\(text \?\? ''\) \}\)/, 'Android clipboard bridge must invoke native copyText');
+assert.match(androidConfig, /public void copyText\(PluginCall call\)/, 'Android native plugin must implement password copy');
+assert.match(androidConfig, /ClipboardManager/, 'Android copy must use the native clipboard service');
+assert.match(androidConfig, /setPrimaryClip\(android\.content\.ClipData\.newPlainText/, 'Android copy must place text into clipboard');
+assert.match(html, /window\.PasskeepFiles\.copy/, 'Password copy helper must use native Android bridge');
+
 assert.match(html, /window\.PasskeepFiles\.save\(blob,name\)/, 'Backup save action must use the native file-save bridge');
 assert.match(html, /Échec de sauvegarde/, 'Backup save must report failures instead of claiming success');
 assert.match(html,/data-action="copy"[^>]*>[\s\S]*?<span>Copier<\/span>/,'Visible copy password action must have a text label');
