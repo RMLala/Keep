@@ -71,4 +71,8 @@ assert.match(html,/statgrid\{grid-template-columns:repeat\(2,minmax\(0,1fr\)\)!i
 assert.match(standalone,/statgrid\{grid-template-columns:repeat\(2,minmax\(0,1fr\)\)!important/,'Standalone mobile statistics must use a readable grid');
 assert.match(html,/data:image\/svg\+xml/,'HTML app must have a custom favicon');
 assert.match(androidConfig,/ic_passkeep_foreground\.xml/,'Android configuration must create the custom launcher icon');
+assert.match(html,/async function copyToClipboard\(text\)/,'Clipboard copy must include a robust fallback for Android WebView');
+assert.match(html,/await copyToClipboard\(x\.password\|\|''\)/,'Password-copy action must use clipboard fallback');
+assert.match(standalone,/async function copyToClipboard\(text\)/,'Standalone clipboard copy fallback must be included');
+assert.match(html,/dialogue|partage\/enregistrement|Download\/Backup/i,'Backup fallback must explain the Android save/share dialog');
 console.log('Passkeep AppForge V3 static checks passed.');
