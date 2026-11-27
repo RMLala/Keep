@@ -38,7 +38,7 @@ async function decrypt(obj,k){const pt=await crypto.subtle.decrypt({name:'AES-GC
 function hasVault(){return !!localStorage.getItem(STORE)}
 function isLegacyVault(){return hasVault()&&localStorage.getItem(AUTH)!=='pin_v1'}
 function validPin(p){return /^[0-9]{4}$/.test(String(p||''))}
-function validUnlockPin(p){return validPin(p)||/^[0-9]{5,32}$/.test(String(p||''))}
+function validUnlockPin(p){return validPin(p)||/^[0-9]{8,32}$/.test(String(p||''))}
 function nativeBiometric(){return window.PasskeepBiometricAuth||window.Capacitor?.Plugins?.BiometricAuth||null}
 function nativeSecureStorage(){return window.PasskeepSecureStorage||window.Capacitor?.Plugins?.SecureStorage||null}
 function nativeReady(){return !!(window.Capacitor?.isNativePlatform?.()&&nativeBiometric()&&nativeSecureStorage())}
