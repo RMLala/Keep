@@ -37,3 +37,73 @@ const color='<resources><color name="ic_launcher_background">#0C1720</color></re
 await mkdir(res+'/drawable',{recursive:true});await mkdir(res+'/mipmap-anydpi-v26',{recursive:true});await mkdir(res+'/mipmap-anydpi',{recursive:true});await mkdir(res+'/values',{recursive:true});
 await writeFile(res+'/drawable/ic_passkeep_foreground.xml',foreground);await writeFile(res+'/mipmap-anydpi-v26/ic_launcher.xml',adaptive);await writeFile(res+'/mipmap-anydpi/ic_launcher.xml',legacy);await writeFile(res+'/values/ic_launcher_background.xml',color);
 console.log('Passkeep custom launcher icon resources installed.');
+
+/* Native Android Save As bridge using the Storage Access Framework (SAF).
+   The picker lets the user select Downloads/Backup and confirms only after bytes are written. */
+const pluginJava = `package com.passkeep.app;
+
+import android.content.Intent;
+import android.net.Uri;
+import java.io.OutputStream;
+import java.util.Base64;
+import com.getcapacitor.Plugin;
+import com.getcapacitor.PluginCall;
+import com.getcapacitor.PluginMethod;
+import com.getcapacitor.annotation.ActivityCallback;
+import com.getcapacitor.annotation.ActivityResult;
+import com.getcapacitor.annotation.CapacitorPlugin;
+
+@CapacitorPlugin(name = "PasskeepBackupSave")
+public class PasskeepBackupSavePlugin extends Plugin {
+  private PluginCall pendingCall;
+  @PluginMethod
+  public void saveFile(PluginCall call) {
+    String name = call.getString("name", "Passkeep_Backup.gdm");
+    pendingCall = call;
+    Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+    intent.addCategory(Intent.CATEGORY_OPENABLE);
+    intent.setType("application/octet-stream");
+    intent.putExtra(Intent.EXTRA_TITLE, name);
+    startActivityForResult(call, intent, "handleSaveResult");
+  }
+  @ActivityCallback
+  private void handleSaveResult(PluginCall call, androidx.activity.result.ActivityResult result) {
+    if (call == null) return;
+    if (result.getResultCode() != android.app.Activity.RESULT_OK || result.getData() == null) {
+      call.reject("Enregistrement annulé.");
+      pendingCall = null;
+      return;
+    }
+    try {
+      Uri uri = result.getData().getData();
+      String base64 = call.getString("data");
+      byte[] bytes = Base64.getDecoder().decode(base64);
+      try (OutputStream out = getContext().getContentResolver().openOutputStream(uri, "w")) {
+        if (out == null) throw new IllegalStateException("Destination inaccessible");
+        out.write(bytes);
+        out.flush();
+      }
+      call.resolve(new com.getcapacitor.JSObject().put("uri", uri.toString()).put("bytes", bytes.length));
+    } catch (Exception ex) {
+      call.reject("Échec de l'enregistrement : " + ex.getMessage(), ex);
+    } finally {
+      pendingCall = null;
+    }
+  }
+}
+`;
+const javaDir = 'android/app/src/main/java/com/passkeep/app';
+await mkdir(javaDir, { recursive: true });
+await writeFile(javaDir + '/PasskeepBackupSavePlugin.java', pluginJava);
+const mainJava = javaDir + '/MainActivity.java';
+if (existsSync(mainJava)) {
+  let m = await readFile(mainJava, 'utf8');
+  if (!m.includes('PasskeepBackupSavePlugin')) {
+    m = m.replace(/import com\\.getcapacitor\\.BridgeActivity;?/, 'import com.getcapacitor.BridgeActivity;\\nimport com.passkeep.app.PasskeepBackupSavePlugin;');
+    m = m.replace(/class MainActivity extends BridgeActivity \\{/, 'class MainActivity extends BridgeActivity {\\n    @Override\\n    public void onCreate(android.os.Bundle savedInstanceState) {\\n        registerPlugin(PasskeepBackupSavePlugin.class);\\n        super.onCreate(savedInstanceState);\\n    }');
+    await writeFile(mainJava, m);
+  }
+} else {
+  throw new Error('MainActivity.java absent; custom SAF plugin cannot be registered safely.');
+}
+console.log('Passkeep Android SAF Save As plugin installed.');
