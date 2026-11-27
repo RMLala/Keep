@@ -171,8 +171,9 @@ $('fileInput').onchange=async e=>{
   if(!added.length&&!duplicates.length)throw Error('Aucune ligne valide. Il faut au minimum les colonnes « Site / service » et « Mot de passe ».');
   if(!confirm(`Aperçu de l’import\n\n${candidates.length} ligne(s) reconnue(s)\n${added.length} nouvel accès\n${duplicates.length} doublon(s) exact(s) ignoré(s)\n${invalid} ligne(s) invalide(s) ignorée(s)\n\nAjouter uniquement les nouveaux accès ?`))return;
   if(added.length){vault=[...added,...vault];await persist();render()}
+  settings.importHistory={time:Date.now(),status:'Import terminé',recognized:candidates.length,added:added.length,duplicates:duplicates.length,invalid};localStorage.setItem(PREFS,JSON.stringify(settings));renderStats();
   toast(`${added.length} accès ajouté(s) · ${duplicates.length} doublon(s) exact(s) ignoré(s) · ${invalid} ligne(s) invalide(s).`)
- }catch(err){alert('Import impossible : '+err.message)}finally{e.target.value=''}
+ }catch(err){settings.importHistory={time:Date.now(),status:'Import en échec',recognized:0,added:0,duplicates:0,invalid:0,error:String(err.message||err).slice(0,200)};localStorage.setItem(PREFS,JSON.stringify(settings));renderStats();alert('Import impossible : '+err.message)}finally{e.target.value=''}
 };
 function parseCSV(text){const first=text.split(/\r?\n/,1)[0]||'',sep=(first.match(/;/g)||[]).length>(first.match(/,/g)||[]).length?';':(first.match(/\t/g)||[]).length>(first.match(/;/g)||[]).length?'\t':',';let rows=[],row=[],v='',q=false;for(let i=0;i<text.length;i++){const c=text[i];if(c==='"'&&q&&text[i+1]==='"'){v+='"';i++}else if(c==='"')q=!q;else if(c===sep&&!q){row.push(v);v=''}else if((c==='\n'||c==='\r')&&!q){if(c==='\r'&&text[i+1]==='\n')i++;row.push(v);if(row.some(a=>a.trim()))rows.push(row);row=[];v=''}else v+=c}row.push(v);if(row.some(a=>a.trim()))rows.push(row);const heads=rows.shift().map(x=>x.replace(/^\ufeff/,''));return rows.map(r=>Object.fromEntries(heads.map((h,i)=>[h,r[i]||''])))}
 // Avoid navigating to submitted URLs; export only serializes vault fields.
