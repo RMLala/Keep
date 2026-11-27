@@ -57,6 +57,19 @@ import com.getcapacitor.annotation.CapacitorPlugin;
 public class PasskeepBackupSavePlugin extends Plugin {
   private PluginCall pendingCall;
   @PluginMethod
+  public void copyText(PluginCall call) {
+    String text = call.getString("text");
+    if (text == null) text = "";
+    try {
+      android.content.ClipboardManager clipboard =
+        (android.content.ClipboardManager) getContext().getSystemService(android.content.Context.CLIPBOARD_SERVICE);
+      clipboard.setPrimaryClip(android.content.ClipData.newPlainText("Passkeep", text));
+      call.resolve(new com.getcapacitor.JSObject().put("copied", true));
+    } catch (Exception ex) {
+      call.reject("Copie dans le presse-papiers impossible : " + ex.getMessage(), ex);
+    }
+  }
+  @PluginMethod
   public void saveFile(PluginCall call) {
     String name = call.getString("name");\n    if (name == null || name.isEmpty()) name = "Passkeep_Backup.gdm";
     pendingCall = call;
