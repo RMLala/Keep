@@ -99,8 +99,8 @@ const mainJava = javaDir + '/MainActivity.java';
 if (existsSync(mainJava)) {
   let m = await readFile(mainJava, 'utf8');
   if (!m.includes('PasskeepBackupSavePlugin')) {
-    m = m.replace(/import com\.getcapacitor\.BridgeActivity;?/, 'import com.getcapacitor.BridgeActivity;\\nimport com.passkeep.app.PasskeepBackupSavePlugin;');
-    m = m.replace(/class MainActivity extends BridgeActivity \{/, 'class MainActivity extends BridgeActivity {\\n    @Override\\n    public void onCreate(android.os.Bundle savedInstanceState) {\\n        registerPlugin(PasskeepBackupSavePlugin.class);\\n        super.onCreate(savedInstanceState);\\n    }');
+    m = m.replace(/import com\.getcapacitor\.BridgeActivity;?/, 'import com.getcapacitor.BridgeActivity;\nimport com.passkeep.app.PasskeepBackupSavePlugin;');
+    m = m.replace(/class MainActivity extends BridgeActivity \{/, 'class MainActivity extends BridgeActivity {\n    @Override\n    public void onCreate(android.os.Bundle savedInstanceState) {\n        registerPlugin(PasskeepBackupSavePlugin.class);\n        super.onCreate(savedInstanceState);\n    }');
     await writeFile(mainJava, m);
   }
 } else {
