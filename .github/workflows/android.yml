@@ -78,3 +78,12 @@ jobs:
         if: github.event_name != 'pull_request' && steps.signing.outputs.ready != 'true'
         run: |
           echo "Release APK skipped: configure the four signing secrets in repository settings."
+
+      - name: Package complete source project
+        run: |
+          zip -r Passkeep-Source-Project.zip . -x ".git/*" "node_modules/*" "android/*" "dist/*" "Passkeep-Source-Project.zip"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Passkeep-Source-Project
+          path: Passkeep-Source-Project.zip
+          if-no-files-found: error
