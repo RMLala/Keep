@@ -2,7 +2,7 @@ name: Passkeep Android
 on:
   workflow_dispatch:
   push:
-    branches: ['**']
+    branches: [main, 'passkeep-*', 'fix/*']
   pull_request:
     branches: [main]
 permissions:
@@ -16,10 +16,16 @@ jobs:
         with: {node-version: '22'}
       - uses: actions/setup-java@v4
         with: {distribution: temurin, java-version: '21'}
-      - name: Install dependencies
-        run: npm install --no-audit --no-fund
+      - name: Install dependencies (lockfile reproducible)
+        run: npm ci --no-audit --no-fund
       - name: Run AppForge V3 static tests
         run: npm test
+      - name: Print build environment (non-secret)
+        run: |
+          node --version
+          npm --version
+          java -version
+          git --version
       - name: Build web assets and standalone HTML
         run: npm run build
       - uses: actions/upload-artifact@v4
@@ -33,8 +39,8 @@ jobs:
         run: npx cap sync android
       - name: Configure API variants
         run: node scripts/configure-android.mjs
-      - name: Build Debug variants
-        run: cd android && ./gradlew assembleApi23Debug assembleApi29Debug
+      - name: Build Debug variants (diagnostic Gradle output)
+        run: cd android && ./gradlew --no-daemon --stacktrace --info assembleApi23Debug assembleApi29Debug
       - name: Check release signing configuration (legacy + AppForge names)
         id: signing
         env:
@@ -68,7 +74,7 @@ jobs:
           PASSKEEP_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS || secrets.KEY_ALIAS }}
           PASSKEEP_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD || secrets.KEY_PASSWORD }}
           VERSION_CODE: ${{ github.run_number }}
-        run: cd android && ./gradlew assembleApi23Release assembleApi29Release -PversionCode="$VERSION_CODE"
+        run: cd android && ./gradlew --no-daemon --stacktrace --info assembleApi23Release assembleApi29Release -PversionCode="$VERSION_CODE"
       - name: Verify both Release APK signatures
         if: github.event_name != 'pull_request' && steps.signing.outputs.ready == 'true'
         run: |
