@@ -64,4 +64,11 @@ assert.match(html, /window\.addEventListener\('online',\(\)=>\{if\(key\)cloudRes
 assert.match(html, /nativeSecureStorage\(\).*passkeep:/s, 'Android Cloud credentials must use secure storage');
 assert.doesNotMatch(html, /afCloudEmail|afCloudPassword|afCloudOrg|\/v1\/auth\/login|organizations\//, 'Cloud access must not require a user account or organization');
 assert.doesNotMatch(html, /cloudToken\s*\?/i, 'Cloud connected state must not be inferred from an in-memory placeholder');
+const standalone=await readFile(new URL('../Passkeep.html',import.meta.url),'utf8');
+const androidConfig=await readFile(new URL('../scripts/configure-android.mjs',import.meta.url),'utf8');
+assert.match(html,/normalizeThemeOptions\(\)/,'Theme options must be normalized to remove duplicates');
+assert.match(html,/statgrid\{grid-template-columns:repeat\(2,minmax\(0,1fr\)\)!important/,'Mobile statistics must use a readable two-column grid');
+assert.match(standalone,/statgrid\{grid-template-columns:repeat\(2,minmax\(0,1fr\)\)!important/,'Standalone mobile statistics must use a readable grid');
+assert.match(html,/data:image\/svg\+xml/,'HTML app must have a custom favicon');
+assert.match(androidConfig,/ic_passkeep_foreground\.xml/,'Android configuration must create the custom launcher icon');
 console.log('Passkeep AppForge V3 static checks passed.');
