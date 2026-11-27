@@ -1,9 +1,9 @@
-assert.match(html,/data-action="copy"[^>]*>[\s\S]*?<span>Copier<\/span>/,'Visible copy password action must have a text label');
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import vm from 'node:vm';
 
 const html = await readFile(new URL('../Passkeep.html', import.meta.url), 'utf8');
+assert.match(html,/data-action="copy"[^>]*>[\s\S]*?<span>Copier<\/span>/,'Visible copy password action must have a text label');
 assert.match(html, /^<!doctype html>/i, 'Passkeep must remain a standalone HTML document');
 const scripts = [...html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)].map(m => m[1]);
 assert.equal(scripts.length, 1, 'Expected one embedded application script');
