@@ -169,7 +169,8 @@ $('fileInput').onchange=async e=>{
   }
   const {unique:added,duplicates}=deduplicateImportRecords(vault,candidates);
   if(!added.length&&!duplicates.length)throw Error('Aucune ligne valide. Il faut au minimum les colonnes « Site / service » et « Mot de passe ».');
-  if(!confirm(`Aperçu de l’import\n\n${candidates.length} ligne(s) reconnue(s)\n${added.length} nouvel accès\n${duplicates.length} doublon(s) exact(s) ignoré(s)\n${invalid} ligne(s) invalide(s) ignorée(s)\n\nAjouter uniquement les nouveaux accès ?`))return;\n  if(added.length){vault=[...added,...vault];await persist();render()}
+  if(!confirm(`Aperçu de l’import\n\n${candidates.length} ligne(s) reconnue(s)\n${added.length} nouvel accès\n${duplicates.length} doublon(s) exact(s) ignoré(s)\n${invalid} ligne(s) invalide(s) ignorée(s)\n\nAjouter uniquement les nouveaux accès ?`))return;
+  if(added.length){vault=[...added,...vault];await persist();render()}
   toast(`${added.length} accès ajouté(s) · ${duplicates.length} doublon(s) exact(s) ignoré(s) · ${invalid} ligne(s) invalide(s).`)
  }catch(err){alert('Import impossible : '+err.message)}finally{e.target.value=''}
 };
