@@ -58,7 +58,7 @@ public class PasskeepBackupSavePlugin extends Plugin {
   private PluginCall pendingCall;
   @PluginMethod
   public void saveFile(PluginCall call) {
-    String name = call.getString("name", "Passkeep_Backup.gdm");
+    String name = call.getString("name");\n    if (name == null || name.isEmpty()) name = "Passkeep_Backup.gdm";
     pendingCall = call;
     Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
     intent.addCategory(Intent.CATEGORY_OPENABLE);
@@ -77,7 +77,7 @@ public class PasskeepBackupSavePlugin extends Plugin {
     try {
       Uri uri = result.getData().getData();
       String base64 = call.getString("data");
-      byte[] bytes = Base64.getDecoder().decode(base64);
+      byte[] bytes = android.util.Base64.decode(base64, android.util.Base64.DEFAULT);
       try (OutputStream out = getContext().getContentResolver().openOutputStream(uri, "w")) {
         if (out == null) throw new IllegalStateException("Destination inaccessible");
         out.write(bytes);
@@ -99,8 +99,8 @@ const mainJava = javaDir + '/MainActivity.java';
 if (existsSync(mainJava)) {
   let m = await readFile(mainJava, 'utf8');
   if (!m.includes('PasskeepBackupSavePlugin')) {
-    m = m.replace(/import com\\.getcapacitor\\.BridgeActivity;?/, 'import com.getcapacitor.BridgeActivity;\\nimport com.passkeep.app.PasskeepBackupSavePlugin;');
-    m = m.replace(/class MainActivity extends BridgeActivity \\{/, 'class MainActivity extends BridgeActivity {\\n    @Override\\n    public void onCreate(android.os.Bundle savedInstanceState) {\\n        registerPlugin(PasskeepBackupSavePlugin.class);\\n        super.onCreate(savedInstanceState);\\n    }');
+    m = m.replace(/import com\.getcapacitor\.BridgeActivity;?/, 'import com.getcapacitor.BridgeActivity;\\nimport com.passkeep.app.PasskeepBackupSavePlugin;');
+    m = m.replace(/class MainActivity extends BridgeActivity \{/, 'class MainActivity extends BridgeActivity {\\n    @Override\\n    public void onCreate(android.os.Bundle savedInstanceState) {\\n        registerPlugin(PasskeepBackupSavePlugin.class);\\n        super.onCreate(savedInstanceState);\\n    }');
     await writeFile(mainJava, m);
   }
 } else {
