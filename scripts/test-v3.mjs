@@ -50,7 +50,7 @@ assert.doesNotMatch(html, /accounts\.google\.com\/gsi|googleapis\.com\/drive|goo
 assert.doesNotMatch(html, /serviceWorker\.register|navigator\.serviceWorker\.register/i, 'PWA/service worker registration is not allowed');
 assert.doesNotMatch(html, /AIza[A-Za-z0-9_-]{25,}|ghp_[A-Za-z0-9]{20,}/, 'Possible hard-coded secret detected');
 const androidConfigScript = await readFile(new URL('../scripts/configure-android.mjs', import.meta.url), 'utf8');
-assert.match(androidConfigScript, /versionName \\"1.1.1\\"/, 'Android APKs must use version 1.1.1');
+assert.ok(androidConfigScript.includes('versionName "1.1.1"'), 'Android APKs must use version 1.1.1');
 const sdk = await readFile(new URL('../cloud/appforge-cloud-sync.js', import.meta.url), 'utf8');
 assert.ok(sdk.includes('https://appforge-license-api.lalainaadclick.workers.dev'), 'The shared Cloud SDK must default to the central Worker');
 assert.match(html, /function deviceId\(\)/, 'License and Cloud requests must use a stable installation ID');
