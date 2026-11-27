@@ -9,6 +9,10 @@ window.PasskeepBiometricAuth = BiometricAuth;
 window.PasskeepSecureStorage = SecureStorage;
 window.XLSX = XLSX;
 window.PasskeepFiles = {
+  async copy(text) {
+    if (!window.Capacitor?.isNativePlatform?.()) throw new Error('Copie native indisponible.');
+    return await NativeBackupSave.copyText({ text: String(text ?? '') });
+  },
   async save(blob, name) {
     if (!window.Capacitor?.isNativePlatform?.()) throw new Error('Enregistrement natif indisponible.');
     const data = await new Promise((resolve, reject) => {
