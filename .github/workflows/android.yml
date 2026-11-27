@@ -38,30 +38,49 @@ jobs:
       - name: Check release signing configuration
         id: signing
         env:
-          KS: ${{ secrets.KEYSTORE_BASE64 }}
-          KSP: ${{ secrets.KEYSTORE_PASSWORD }}
-          KA: ${{ secrets.KEY_ALIAS }}
-          KP: ${{ secrets.KEY_PASSWORD }}
+          KS: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KSP: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KA: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KP: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
           if [ -n "$KS" ] && [ -n "$KSP" ] && [ -n "$KA" ] && [ -n "$KP" ]; then echo 'ready=true' >> $GITHUB_OUTPUT; else echo 'ready=false' >> $GITHUB_OUTPUT; fi
       - name: Explain PR secret restriction
         if: github.event_name == 'pull_request' && steps.signing.outputs.ready != 'true'
         run: echo "Release signing check skipped on pull_request: repository secrets are not exposed to this event. This does not indicate that repository secrets are absent."
+      - name: Fail push/manual run if release secrets are unavailable
+        if: github.event_name != 'pull_request' && steps.signing.outputs.ready != 'true'
+        run: |
+          echo "::error::Release signing secrets unavailable. Configure ANDROID_KEYSTORE_BASE64, ANDROID_KEY_ALIAS, ANDROID_KEYSTORE_PASSWORD and ANDROID_KEY_PASSWORD in GitHub Actions secrets."
+          exit 1
       - name: Configure release signing key
         if: github.event_name != 'pull_request' && steps.signing.outputs.ready == 'true'
         env:
-          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
         run: |
-          echo "$KEYSTORE_BASE64" | base64 --decode > android/app/android-release.jks
+          set -euo pipefail
+          printf '%s' "$KEYSTORE_BASE64" | base64 --decode > android/app/android-release.jks
+          chmod 600 android/app/android-release.jks
       - name: Build signed Release variants
         if: github.event_name != 'pull_request' && steps.signing.outputs.ready == 'true'
         env:
           PASSKEEP_STORE_FILE: ${{ github.workspace }}/android/app/android-release.jks
-          PASSKEEP_STORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-          PASSKEEP_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-          PASSKEEP_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          PASSKEEP_STORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          PASSKEEP_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          PASSKEEP_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
           VERSION_CODE: ${{ github.run_number }}
         run: cd android && ./gradlew assembleApi23Release assembleApi29Release -PversionCode="$VERSION_CODE"
+      - name: Verify both Release APK signatures
+        if: github.event_name != 'pull_request' && steps.signing.outputs.ready == 'true'
+        run: |
+          set -euo pipefail
+          A23="android/app/build/outputs/apk/api23/release/app-api23-release.apk"
+          A29="android/app/build/outputs/apk/api29/release/app-api29-release.apk"
+          test -f "$A23" || { echo "::error::API23 Release APK missing: $A23"; exit 1; }
+          test -f "$A29" || { echo "::error::API29 Release APK missing: $A29"; exit 1; }
+          APKSIGNER="$(find "$ANDROID_HOME/build-tools" -name apksigner -type f | sort -V | tail -n 1)"
+          test -n "$APKSIGNER" || { echo "::error::apksigner not found"; exit 1; }
+          "$APKSIGNER" verify --verbose --print-certs "$A23"
+          "$APKSIGNER" verify --verbose --print-certs "$A29"
       - uses: actions/upload-artifact@v4
         if: github.event_name != 'pull_request' && steps.signing.outputs.ready == 'true'
         with:
@@ -70,10 +89,6 @@ jobs:
             android/app/build/outputs/apk/api23/release/*.apk
             android/app/build/outputs/apk/api29/release/*.apk
           if-no-files-found: error
-      - name: Release signing secrets missing
-        if: github.event_name != 'pull_request' && steps.signing.outputs.ready != 'true'
-        run: |
-          echo "Release APK skipped: configure the four signing secrets in repository settings."
       - name: Package complete source project
         run: |
           zip -r Passkeep-Source-Project.zip . -x ".git/*" "node_modules/*" "android/*" "dist/*" "Passkeep-Source-Project.zip"
