@@ -3,6 +3,14 @@ import { readFile } from 'node:fs/promises';
 import vm from 'node:vm';
 
 const html = await readFile(new URL('../Passkeep.html', import.meta.url), 'utf8');
+const androidConfig = await readFile(new URL('../scripts/configure-android.mjs', import.meta.url), 'utf8');
+const nativeEntry = await readFile(new URL('../web/native-entry.js', import.meta.url), 'utf8');
+assert.match(androidConfig, /ACTION_CREATE_DOCUMENT/, 'Android backup must use native SAF save picker');
+assert.match(androidConfig, /android\.util\.Base64\.decode/, 'Native SAF bridge must decode backup bytes on API23+');
+assert.match(androidConfig, /registerPlugin\(PasskeepBackupSavePlugin\.class\)/, 'Android SAF plugin must be registered');
+assert.match(nativeEntry, /NativeBackupSave\.saveFile/, 'Native bridge must invoke SAF save plugin');
+assert.match(html, /window\.PasskeepFiles\.save\(blob,name\)/, 'Backup save action must use the native file-save bridge');
+assert.match(html, /Échec de sauvegarde/, 'Backup save must report failures instead of claiming success');
 assert.match(html,/data-action="copy"[^>]*>[\s\S]*?<span>Copier<\/span>/,'Visible copy password action must have a text label');
 assert.match(html, /^<!doctype html>/i, 'Passkeep must remain a standalone HTML document');
 const scripts = [...html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script>/gi)].map(m => m[1]);
