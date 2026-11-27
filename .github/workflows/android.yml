@@ -35,13 +35,6 @@ jobs:
         run: node scripts/configure-android.mjs
       - name: Build Debug variants
         run: cd android && ./gradlew assembleApi23Debug assembleApi29Debug
-      - uses: actions/upload-artifact@v4
-        with:
-          name: Passkeep-Debug-API23-API29
-          path: |
-            android/app/build/outputs/apk/api23/debug/*.apk
-            android/app/build/outputs/apk/api29/debug/*.apk
-          if-no-files-found: error
       - name: Check release signing configuration
         id: signing
         env:
@@ -51,6 +44,9 @@ jobs:
           KP: ${{ secrets.KEY_PASSWORD }}
         run: |
           if [ -n "$KS" ] && [ -n "$KSP" ] && [ -n "$KA" ] && [ -n "$KP" ]; then echo 'ready=true' >> $GITHUB_OUTPUT; else echo 'ready=false' >> $GITHUB_OUTPUT; fi
+      - name: Explain PR secret restriction
+        if: github.event_name == 'pull_request' && steps.signing.outputs.ready != 'true'
+        run: echo "Release signing check skipped on pull_request: repository secrets are not exposed to this event. This does not indicate that repository secrets are absent."
       - name: Configure release signing key
         if: github.event_name != 'pull_request' && steps.signing.outputs.ready == 'true'
         env:
@@ -78,7 +74,6 @@ jobs:
         if: github.event_name != 'pull_request' && steps.signing.outputs.ready != 'true'
         run: |
           echo "Release APK skipped: configure the four signing secrets in repository settings."
-
       - name: Package complete source project
         run: |
           zip -r Passkeep-Source-Project.zip . -x ".git/*" "node_modules/*" "android/*" "dist/*" "Passkeep-Source-Project.zip"
