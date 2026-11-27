@@ -14,7 +14,14 @@ assert.ok(html.includes('Aperçu de l’import'), 'Import preview must be presen
 assert.ok(html.includes('Aperçu de restauration'), 'Restore preview must be present');
 assert.ok(html.includes('Fusionner uniquement'), 'Restore must offer merge');
 assert.ok(html.includes('safeCell=v=>'), 'Excel export must mitigate formula injection');
-assert.ok(html.includes('Version 1.1.0'), 'Version must be bumped');
+assert.ok(html.includes('Version 1.1.1'), 'Version must be bumped');
+assert.match(html, /data-action=\"favorite\"/, 'Vault records must support favorites');
+assert.match(html, /__favorites/, 'Favorites filter must be available');
+assert.match(html, /data-stat=\"weak\"/, 'Statistics must open drilldown details');
+assert.match(html, /openStatDetail\(kind\)/, 'Statistics drilldown modal must be implemented');
+assert.match(html, /settings\.importHistory/, 'Import successes and failures must be reported');
+assert.match(html, /data-import-detail/, 'Import report details must be accessible');
+assert.match(html, /aliases=\{dark:'obsidian',light:'pearl'\}/, 'Dark and light theme choices must map to saved themes');
 assert.match(html, /settings\.pinLength===4\?4:32/, 'Existing longer PIN entry must remain compatible');
 assert.match(html, /function deduplicateImportRecords\(existing,incoming\)/, 'Import must deduplicate records before adding them');
 const importHelpers = html.match(/function importFingerprint\(entry\)\{[\s\S]*?\n}\nfunction deduplicateImportRecords\(existing,incoming\)\{[\s\S]*?\n}/);
