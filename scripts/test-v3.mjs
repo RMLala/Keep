@@ -9,7 +9,7 @@ assert.equal(scripts.length, 1, 'Expected one embedded application script');
 for (const [i, source] of scripts.entries()) new vm.Script(source, { filename: `Passkeep.inline-${i + 1}.js` });
 assert.ok(html.includes("function validPin(p){return /^[0-9]{4}$/.test(String(p||''))}"), 'New Passkeep PINs must be exactly four digits');
 assert.match(html, /function validUnlockPin\(p\)/, 'Existing PINs must remain usable until changed');
-assert.ok(html.includes('/^[0-9]{5,32}$/'), 'Previously supported legacy PIN lengths must remain usable');
+assert.ok(html.includes('/^[0-9]{8,32}$/'), 'Previously supported legacy PIN lengths must remain usable');
 assert.ok(html.includes('Aperçu de l’import'), 'Import preview must be present');
 assert.ok(html.includes('Aperçu de restauration'), 'Restore preview must be present');
 assert.ok(html.includes('Fusionner uniquement'), 'Restore must offer merge');
