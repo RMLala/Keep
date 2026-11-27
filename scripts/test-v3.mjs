@@ -1,3 +1,4 @@
+assert.match(html,/data-action="copy"[^>]*>[\s\S]*?<span>Copier<\/span>/,'Visible copy password action must have a text label');
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import vm from 'node:vm';
