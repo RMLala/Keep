@@ -45,12 +45,12 @@ const pluginJava = `package com.passkeep.app;
 import android.content.Intent;
 import android.net.Uri;
 import java.io.OutputStream;
-import java.util.Base64;
+
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.ActivityCallback;
-import com.getcapacitor.annotation.ActivityResult;
+import androidx.activity.result.ActivityResult;
 import com.getcapacitor.annotation.CapacitorPlugin;
 
 @CapacitorPlugin(name = "PasskeepBackupSave")
