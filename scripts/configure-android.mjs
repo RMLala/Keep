@@ -25,7 +25,7 @@ if(!s.includes('signingConfigs')) {
     }`);
 }
 if(!s.includes('signingConfig signingConfigs.release')) s=s.replace(/buildTypes\s*\{\s*release\s*\{/, `buildTypes {\n        release {\n            signingConfig signingConfigs.release`);
-s=s.replace(/versionCode\s+\d+/, 'versionCode project.findProperty("versionCode")?.toInteger() ?: 1').replace(/versionName\s+"[^"]+"/, 'versionName "1.1.2"');
+s=s.replace(/versionCode\s+\d+/, 'versionCode project.findProperty("versionCode")?.toInteger() ?: 1').replace(/versionName\s+"[^"]+"/, 'versionName "1.1.4"');
 await writeFile(path,s);
 
 import { mkdir } from 'node:fs/promises';
